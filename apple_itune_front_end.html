@@ -1,0 +1,223 @@
+<html>
+  <head>
+    <title>Apple iTune Artist Search</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r"   crossorigin="anonymous">
+      <!-- Favicon -->
+    <link rel="shortcut icon" href="Logo.png" type="image/ico" />
+      
+      <style>
+        .form-control:focus {
+            border-color: #f0ad4e;
+            box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 8px #f0ad4e);
+        }
+          
+        .imgModi {
+          padding: .5em;
+          float: left;
+          height: 80px;
+          width: 80px;
+          border-radius: 50%;
+    }
+      </style>
+ </head>
+
+  <body>
+      <div class="container">
+      <div id = "homePage" style="display:block;padding-top:30px;">
+              <div class="row">
+                <div class="col-lg-12" style="text-align:center;">APPLE iTunes Search Artist</div>
+              </div>
+              <div class="row">
+                <!--   <div class="col-lg-2" ><img src="microphone1.png"</div>-->
+              <div class="col-lg-12" style="text-align:center;"><h2>Find your artist below</h2></div>
+                <!-- <div class="col-lg-2" ><img src="microphone2.png"</div>-->
+              </div>
+
+             <div class="row">
+                <div class="col-lg-12" style="text-align:center;"><h2><button type="button" class="btn btn-warning btn-lg" onclick="javascript:showSearchTrackModal()">Search</button></h2></div>      
+             </div>    
+      </div>
+      <div id="searchResult" style="display:none;">
+              <div class="row" style="padding-top:30px;">
+                   <div class="col-lg-12 pull-right" style="width:35%;" >
+                    <div class="input-group">
+                      <input type="search" class="form-control" id="search" name="search" placeholder="Search">
+                      <span class="input-group-btn">
+                        <button class="btn btn-default" onclick="javascript:filterResult()" type="button">Filter</button>
+                      </span>
+                    </div>
+                  </div>
+               </div>
+                <div class="row">
+                      <div class="col-lg-11 col-lg-offset-1" >
+                          <h3> <b>Search results for <label id="lSearchItem" style="padding-right:6px;"></label></b><button type="button" class="btn btn-warning btn-sm" onclick="javascript:showHomePage()" >Clear</button></h3>   
+                      </div>
+                </div>
+               <div class="row">
+                    <div id="searchResults"></div>
+                   <div id="noSearchResultsDiv" style="display:none;"><h3>No tracks found, please try again with different artist name</h3></div>
+                </div>
+        </div>       
+      </div>
+
+      <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+      <script>
+          var responseData; // this variable will be set to response data fetched from itunes, and can be used throughout script which prevents us to make another ajax call.
+            function showSearchTrackModal() {
+            $('#searchError').text("");
+            $('#searchError').hide();
+            $('#searchArtistModal').modal();
+            $('#login').focus();
+        }
+           /* This function is called when user clicks on search button of modal*/ 
+             function searchTracks() {
+                 if (validateSearchModalForm()) {
+
+                   var apiURL = "https://itunes.apple.com/search";
+                   apiURL = apiURL + '?term=' +$('#artistName').val() + '&limit=' + $('#noOfTrack').val() +'&callback=?';
+
+                    $.getJSON(apiURL, function (data) {
+
+                        var artistLabelText = '"'+$('#artistName').val()+'"'+'.';
+                            $('#artistName').val('');
+                            $('#noOfTrack').val('');
+                            $('#searchArtistModal').modal('hide');
+                            $('#homePage').hide();
+                            $('#lSearchItem').text(artistLabelText);
+                            $('#searchResult').show();
+
+                        if (data.results.length > 0) {
+                            $('#noSearchResultsDiv').hide();
+                            parseData(data);
+                        } else {
+                            $('#searchResult').show();
+                            $('#noSearchResultsDiv').show();
+
+                        }
+                    }); 
+              }             
+        } 
+          
+          /* This function validates the modal dialog form*/
+           function validateSearchModalForm() { 
+                if($('#artistName').val() == "") {    
+                      $('#artistNameErrorModal').show();
+                      return false;
+                    } else {
+                        $('#artistNameErrorModal').hide();
+                        return true;
+                    }
+            }
+          
+           /* This function is called by search track function*/
+            function parseData (data) {
+                
+                responseData = data;
+                var shortDescription;
+              
+                  for (var track = 0; track < data.resultCount; track++) {	
+
+                       shortDescription = data.results[track].shortDescription;
+
+                       if(shortDescription == undefined) {
+                          shortDescription = "Description not available"
+                      }
+                      addRowinResult(data, track, shortDescription); 
+                  }
+            }
+        
+          function addRowinResult(data, track, shortDescription) {
+              $("#searchResults").append('<div class="row"><div class="col-xs-12 col-sm-12  col-lg-2">'
+                                             +'<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">'
+                                             +'<img src="' + data.results[track].artworkUrl60 + '" class="imgModi">'
+                                             +'</div>'
+                                             +'</div>'
+                                             +'<div class="col-xs-12 col-sm-12  col-lg-10" style="padding-left:18px;padding-top:10px;">'
+                                             +' <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">'
+                                             +'<b>Artist :</b>'
+                                             + data.results[track].artistName
+                                             +'</div>'
+                                              +' <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">'
+                                             +'<b>Track Name :</b>'
+                                             +data.results[track].trackName
+                                             +'</div>'
+                                              +' <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">'
+                                             +shortDescription
+                                             +'<hr></div>');
+          }
+          
+          
+          /* This function is called when user clicks on Clear button*/
+          function showHomePage() { 
+            $("#searchResults").html('');
+            $('#search').val('');
+            $('#homePage').show();
+            $('#searchResult').hide();   
+          }
+                
+          /*This function is called when user click on filter button*/
+          function filterResult() {
+               var searchArtist = $('#search').val();
+               $("#searchResults").html('');
+               $('#noSearchResultsDiv').hide();
+               var shortDescription;
+               var isRecordFound = 0; 
+               for (var track = 0; track < responseData.resultCount; track++) {
+                        if(responseData.results[track].artistName == searchArtist) {
+                            isRecordFound = 1;
+                            shortDescription = responseData.results[track].shortDescription;
+                            if(shortDescription == undefined) {
+                                shortDescription = "Description not available";
+                            }
+                        addRowinResult(responseData, track, shortDescription);
+                    }
+                }
+              if(!isRecordFound) {
+                    $('#noSearchResultsDiv').show();
+              }
+          }
+    </script>
+      
+    <div class="modal fade" id="searchArtistModal">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header" style="border-bottom:0px;">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h3 class="font-thin">
+                        <span class="m-l-sm">Enter Search Criteria</span>
+					</h3>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-lg-12">
+							<div class="form-group">
+								<label>Artist Name</label> <input id="artistName" name="artistName"
+									placeholder="Enter artist name" class="form-control warning" type="text"
+									maxlength="100" />
+                                <span style="display:none; color:red;" id="artistNameErrorModal" name="artistNameErrorModal">Please enter artist name</span>
+							</div>
+						</div>
+					</div>
+                     <div class="row">
+						<div class="col-lg-12">
+							<div class="form-group">
+								<label>Number of Tracks</label> <input id="noOfTrack" name="noOfTrack"
+									placeholder="Enter number of track" class="form-control" type="number" min=0 />
+							</div>
+						</div>
+                    </div>
+                    <div class="row" style="text-align:center;">
+					<button id="searchModalButton" class="btn  btn-lg btn-warning"
+						onclick="javascript:searchTracks()">Search</button>
+				</div>
+                </div>
+			</div>
+		</div>
+	</div>
+  </body>
+</html>
